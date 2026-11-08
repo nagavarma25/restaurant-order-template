@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>App Kitchen Menu Maker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800&family=Dancing+Script:wght@700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: two panes — form on the left, generated poster on the right; stacks on phones */
+:root {
+  --bg: #f3f1f6;
+  --panel: #ffffff;
+  --fg: #1d1a24;
+  --muted: #6c6676;
+  --line: #e2dde9;
+  --accent: #d9480f;
+  --accent-fg: #ffffff;
+  --field: #faf9fc;
+  --danger: #b42318;
+  --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15131a; --panel: #1f1c26; --fg: #f1eef6; --muted: #a59fb0; --line: #34303d;
+    --accent: #ff8a4c; --accent-fg: #1a0f08; --field: #18161e; --danger: #ff7b6e; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15131a; --panel: #1f1c26; --fg: #f1eef6; --muted: #a59fb0; --line: #34303d;
+  --accent: #ff8a4c; --accent-fg: #1a0f08; --field: #18161e; --danger: #ff7b6e; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+header.top { max-width: 1280px; margin: 0 auto 20px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+header.top h1 { font-family: var(--font-display); font-weight: 800; font-size: 26px; margin: 0; text-wrap: balance; }
+header.top p { margin: 0; color: var(--muted); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; }
+form { display: flex; flex-direction: column; gap: 20px; }
+fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+legend, .label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 0; margin-bottom: 6px; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; min-width: 0; }
+input[type="text"], input[type="tel"], textarea {
+  font: inherit; color: var(--fg); background: var(--field); border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 11px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; min-height: 64px; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.items { display: flex; flex-direction: column; gap: 8px; }
+.item-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px 38px; gap: 8px; align-items: center; }
+.item-head { display: grid; grid-template-columns: minmax(0, 1fr) 110px 38px; gap: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 480px) { .grid2 { grid-template-columns: minmax(0, 1fr); } .item-row, .item-head { grid-template-columns: minmax(0, 1fr) 84px 38px; } }
+button { font: inherit; cursor: pointer; border-radius: 8px; }
+.btn-ghost { background: transparent; color: var(--fg); border: 1px dashed var(--line); padding: 9px 12px; font-weight: 600; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-x { width: 38px; height: 38px; background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 18px; line-height: 1; }
+.btn-x:hover { color: var(--danger); border-color: var(--danger); }
+.btn-primary { background: var(--accent); color: var(--accent-fg); border: 0; padding: 13px 18px; font-weight: 700; font-size: 16px; }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-sec { background: var(--field); color: var(--fg); border: 1px solid var(--line); padding: 9px 14px; font-weight: 600; }
+details { border-top: 1px solid var(--line); padding-top: 14px; }
+summary { cursor: pointer; font-weight: 700; font-size: 14px; }
+details[open] summary { margin-bottom: 12px; }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.check { flex-direction: row; align-items: center; gap: 8px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.status { font-size: 13px; color: var(--muted); }
+.status.dirty { color: var(--accent); font-weight: 600; }
+.preview { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: flex; flex-direction: column; gap: 12px; }
+.preview img { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); background: #eee; }
+.preview .actions { justify-content: space-between; }
+canvas { display: none; }
+@media (max-width: 860px) { .preview { position: static; } }
+</style>
+
+<header class="top">
+  <h1>App Kitchen Menu Maker</h1>
+  <p>Fill in today's menu, press Generate, then save or share the poster.</p>
+</header>
+
+<div class="wrap">
+  <section class="panel">
+    <form id="f" autocomplete="off">
+      <fieldset>
+        <legend>Menu items</legend>
+        <div class="item-head"><span>Item name</span><span>Price (₹)</span><span></span></div>
+        <div class="items" id="items"></div>
+        <button type="button" class="btn-ghost" id="addItem">+ Add item</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Order details</legend>
+        <div class="grid2">
+          <label>Order before<input type="text" id="orderBefore" value="10 AM"></label>
+          <label>Delivery by<input type="text" id="deliveryBy" value="1.15 PM"></label>
+          <label>Delivery at<input type="text" id="deliveryAt" value="D-706"></label>
+          <label>For orders WhatsApp on<input type="tel" id="whatsapp" value="8555093913"></label>
+        </div>
+      </fieldset>
+
+      <details id="moreBox">
+        <summary>Branding and banners</summary>
+        <fieldset>
+          <div class="grid2">
+            <label>Small title<input type="text" id="brandSmall" value="The"></label>
+            <label>Tagline<input type="text" id="tagline" value="HOMEMADE WITH LOVE"></label>
+            <label>Colourful word<input type="text" id="brandColor" value="APP"></label>
+            <label>Dark word<input type="text" id="brandDark" value="KITCHEN"></label>
+          </div>
+          <label class="check"><input type="checkbox" id="showNotice" checked> Show notice banner</label>
+          <label>Notice text
+            <textarea id="notice" rows="2">We are *CLOSED* this *SUNDAY*
+due to _Diwali._</textarea>
+          </label>
+          <p class="hint">Wrap words in *stars* for gold bold, or _underscores_ for gold script. A new line starts a new line on the poster.</p>
+          <label class="check"><input type="checkbox" id="showCta" checked> Show bottom banner</label>
+          <label>Bottom banner, small line<input type="text" id="ctaTop" value="IF YOU HAVEN'T TRIED OUR FOOD YET,"></label>
+          <label>Bottom banner, big line<input type="text" id="ctaBig" value="IT'S *TIME* YOU TRY IT!"></label>
+        </fieldset>
+      </details>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary">Generate image</button>
+        <span class="status" id="status">Poster is up to date.</span>
+      </div>
+    </form>
+  </section>
+
+  <section class="preview" aria-label="Generated poster">
+    <img id="out" alt="Generated menu poster">
+    <div class="actions">
+      <span class="status">Right-click or long-press the image to save it.</span>
+      <button type="button" class="btn-sec" id="copyBtn">Copy image</button>
+    </div>
+    <span class="status" id="copyMsg" role="status"></span>
+  </section>
+</div>
+<canvas id="cv"></canvas>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const itemsEl = $("items");
+  const STORE = "appkitchen-form-v1";
+  const fields = ["orderBefore","deliveryBy","deliveryAt","whatsapp","brandSmall","tagline","brandColor","brandDark","notice","ctaTop","ctaBig"];
+  const checks = ["showNotice","showCta"];
+  let rowSeq = 0;
+
+  function addRow(name = "", price = "") {
+    if (itemsEl.children.length >= 8) return;
+    const id = ++rowSeq;
+    const row = document.createElement("div");
+    row.className = "item-row";
+    row.innerHTML =
+      '<input type="text" id="itemName' + id + '" aria-label="Item name" placeholder="e.g. Prawns Pulav">' +
+      '<input type="text" id="itemPrice' + id + '" aria-label="Price" inputmode="numeric" placeholder="320">' +
+      '<button type="button" class="btn-x" aria-label="Remove item">×</button>';
+    row.children[0].value = name;
+    row.children[1].value = price;
+    row.children[2].addEventListener("click", () => { row.remove(); markDirty(); });
+    itemsEl.appendChild(row);
+  }
+  $("addItem").addEventListener("click", () => { addRow(); markDirty(); itemsEl.lastElementChild?.children[0].focus(); });
+
+  function readForm() {
+    const d = {};
+    fields.forEach(k => d[k] = $(k).value);
+    checks.forEach(k => d[k] = $(k).checked);
+    d.items = [...itemsEl.children].map(r => ({ name: r.children[0].value.trim(), price: r.children[1].value.trim() }))
+      .filter(i => i.name || i.price);
+    return d;
+  }
+  function loadForm() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) {}
+    if (d) {
+      fields.forEach(k => { if (typeof d[k] === "string") $(k).value = d[k]; });
+      checks.forEach(k => { if (typeof d[k] === "boolean") $(k).checked = d[k]; });
+    }
+    const items = d && Array.isArray(d.items) && d.items.length ? d.items : [{ name: "Prawns Pulav", price: "320" }, { name: "Prawns Curry", price: "320" }];
+    items.forEach(i => addRow(i.name, i.price));
+  }
+  function saveForm(d) { try { localStorage.setItem(STORE, JSON.stringify(d)); } catch (e) {} }
+
+  const status = $("status");
+  function markDirty() { status.textContent = "Changes not applied yet. Press Generate image."; status.classList.add("dirty"); }
+  $("f").addEventListener("input", markDirty);
+
+  /* ---------- drawing helpers ---------- */
+  const W = 1024, SCALE = 2;
+  const FONT = '"Poppins", "Segoe UI", Arial, sans-serif';
+  const SCRIPT = '"Dancing Script", "Brush Script MT", cursive';
+  const cv = $("cv"), ctx = cv.getContext("2d");
+
+  function rr(x, y, w, h, r) {
+    r = Math.min(r, h / 2, w / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function glassCard(x, y, w, h, r = 34) {
+    ctx.save();
+    ctx.shadowColor = "rgba(40,30,70,0.13)"; ctx.shadowBlur = 26; ctx.shadowOffsetY = 10;
+    rr(x, y, w, h, r);
+    const g = ctx.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, "rgba(255,255,255,0.92)"); g.addColorStop(1, "rgba(242,242,247,0.88)");
+    ctx.fillStyle = g; ctx.fill();
+    ctx.restore();
+    rr(x, y, w, h, r); ctx.lineWidth = 2.5; ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.stroke();
+    rr(x + 1.5, y + 1.5, w - 3, h - 3, r); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(200,198,215,0.5)"; ctx.stroke();
+  }
+  function vDivider(x, y1, y2) { ctx.fillStyle = "#3a3a44"; ctx.fillRect(x, y1, 2, y2 - y1); }
+  function hLine(x1, x2, y, w = 2) { ctx.fillStyle = "#2b2b33"; ctx.fillRect(x1, y, x2 - x1, w); }
+  function heart(x, y, s, color = "#e1121f") {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s / 30, s / 30);
+    ctx.beginPath();
+    ctx.moveTo(0, 9);
+    ctx.bezierCurveTo(-4, 4, -15, -1, -15, -8);
+    ctx.bezierCurveTo(-15, -14, -10, -17, -6, -17);
+    ctx.bezierCurveTo(-3, -17, -1, -15, 0, -12);
+    ctx.bezierCurveTo(1, -15, 3, -17, 6, -17);
+    ctx.bezierCurveTo(10, -17, 15, -14, 15, -8);
+    ctx.bezierCurveTo(15, -1, 4, 4, 0, 9);
+    ctx.fillStyle = color; ctx.fill(); ctx.restore();
+  }
+  function leaf(x, y, len, wid, ang) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    const g = ctx.createLinearGradient(0, -wid, len, wid);
+    g.addColorStop(0, "#7cc242"); g.addColorStop(1, "#2f7a1f");
+    ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(len * 0.5, -wid, len, 0);
+    ctx.quadraticCurveTo(len * 0.5, wid, 0, 0);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(len * 0.9, 0);
+    ctx.strokeStyle = "rgba(220,255,200,0.55)"; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.restore();
+  }
+  // sprig grows upward from (x,y); flip mirrors horizontally
+  function sprig(x, y, s, flip = false, tilt = 0) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(flip ? -s : s, s); ctx.rotate(tilt);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(14, -60, 4, -120);
+    ctx.strokeStyle = "#3f7d22"; ctx.lineWidth = 3.5; ctx.lineCap = "round"; ctx.stroke();
+    const pts = [[4, -28], [10, -55], [10, -82], [6, -106]];
+    pts.forEach(([px, py], i) => {
+      leaf(px, py, 38 - i * 4, 11 - i, -Math.PI / 2 - 0.9);
+      leaf(px, py, 36 - i * 4, 10 - i, -Math.PI / 2 + 0.75);
+    });
+    leaf(4, -118, 30, 9, -Math.PI / 2 - 0.1);
+    ctx.restore();
+  }
+  function chefHat(cx, cy, s, fillCol = "#fff", strokeCol = "#1d1d22") {
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
+    const shapes = (pad) => {
+      ctx.beginPath();
+      ctx.arc(-20, -4, 16 + pad, 0, Math.PI * 2);
+      ctx.moveTo(18 + pad + 6, -12); ctx.arc(6, -12, 18 + pad, 0, Math.PI * 2);
+      ctx.moveTo(38 + pad, -2); ctx.arc(22, -2, 16 + pad, 0, Math.PI * 2);
+      ctx.rect(-24 - pad, -2, 48 + pad * 2, 26 + pad);
+    };
+    shapes(3.5); ctx.fillStyle = strokeCol; ctx.fill();
+    shapes(0); ctx.fillStyle = fillCol; ctx.fill();
+    ctx.fillStyle = strokeCol; ctx.fillRect(-24, 12, 48, 3);
+    ctx.fillRect(-9, 2, 3, 9); ctx.fillRect(6, 2, 3, 9);
+    ctx.restore();
+  }
+  function forkSpoon(cx, cy, s) {
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
+    ctx.fillStyle = "#1d1d22"; ctx.strokeStyle = "#1d1d22"; ctx.lineCap = "round";
+    // spoon
+    ctx.save(); ctx.rotate(Math.PI / 4);
+    ctx.beginPath(); ctx.ellipse(0, -24, 9, 13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, 34); ctx.stroke();
+    ctx.restore();
+    // fork
+    ctx.save(); ctx.rotate(-Math.PI / 4);
+    ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, 34); ctx.stroke();
+    ctx.lineWidth = 3;
+    [-7, -2.3, 2.3, 7].forEach(t => { ctx.beginPath(); ctx.moveTo(t, -36); ctx.lineTo(t, -18); ctx.stroke(); });
+    ctx.beginPath(); ctx.moveTo(-7, -18); ctx.quadraticCurveTo(0, -6, 7, -18); ctx.lineWidth = 4; ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+  }
+  function clockIcon(cx, cy, r) {
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.lineWidth = 4; ctx.strokeStyle = "#111"; ctx.stroke();
+    ctx.lineCap = "round"; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - r * 0.6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - r * 0.4, cy + r * 0.3); ctx.stroke();
+  }
+  function scooterIcon(cx, cy) {
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.fillStyle = "#111"; ctx.strokeStyle = "#111"; ctx.lineCap = "round";
+    // speed lines
+    ctx.lineWidth = 3;
+    [[-58, -10, -40], [-62, 0, -38], [-56, 10, -42]].forEach(([a, y, b]) => { ctx.beginPath(); ctx.moveTo(a, y); ctx.lineTo(b, y); ctx.stroke(); });
+    // wheels
+    ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(-22, 20, 11, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(30, 20, 11, 0, Math.PI * 2); ctx.stroke();
+    // body
+    ctx.beginPath();
+    ctx.moveTo(-36, 14); ctx.quadraticCurveTo(-34, -6, -10, -4); ctx.lineTo(10, -4); ctx.lineTo(14, 12);
+    ctx.lineTo(28, 2); ctx.lineTo(22, -22); ctx.lineTo(28, -24); ctx.lineTo(38, 8); ctx.quadraticCurveTo(44, 16, 40, 20);
+    ctx.lineTo(-10, 20); ctx.quadraticCurveTo(-14, 10, -22, 10); ctx.quadraticCurveTo(-32, 10, -34, 18); ctx.closePath(); ctx.fill();
+    // delivery box + rider
+    ctx.fillRect(-34, -26, 22, 18);
+    ctx.beginPath(); ctx.arc(4, -34, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-4, -24); ctx.lineTo(10, -24); ctx.lineTo(16, -6); ctx.lineTo(-6, -6); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  function pinIcon(cx, cy, s) {
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
+    ctx.beginPath(); ctx.moveTo(0, 30);
+    ctx.bezierCurveTo(-8, 14, -22, 2, -22, -12);
+    ctx.arc(0, -12, 22, Math.PI, 0);
+    ctx.bezierCurveTo(22, 2, 8, 14, 0, 30); ctx.closePath();
+    ctx.fillStyle = "#111"; ctx.fill();
+    ctx.beginPath(); ctx.arc(0, -12, 8, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.restore();
+  }
+  function whatsappIcon(cx, cy, r) {
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.18)"; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
+    // white outer bubble with tail
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.moveTo(cx - r * 0.62, cy + r * 0.72); ctx.lineTo(cx - r * 0.95, cy + r * 1.02); ctx.lineTo(cx - r * 0.28, cy + r * 0.92); ctx.closePath();
+    ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.restore();
+    const g = ctx.createLinearGradient(cx, cy - r, cx, cy + r);
+    g.addColorStop(0, "#5fe07a"); g.addColorStop(1, "#1fae45");
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.84, 0, Math.PI * 2);
+    ctx.moveTo(cx - r * 0.55, cy + r * 0.64); ctx.lineTo(cx - r * 0.8, cy + r * 0.88); ctx.lineTo(cx - r * 0.3, cy + r * 0.78); ctx.closePath();
+    ctx.fillStyle = g; ctx.fill();
+    // handset
+    const hr = r * 0.38;
+    ctx.beginPath(); ctx.arc(cx, cy, hr, 0.15 * Math.PI, 1.35 * Math.PI);
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = r * 0.17; ctx.lineCap = "round"; ctx.stroke();
+    [0.15, 1.35].forEach(a => {
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a * Math.PI) * hr, cy + Math.sin(a * Math.PI) * hr, r * 0.15, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff"; ctx.fill();
+    });
+  }
+  function leafOutline(cx, cy) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(-Math.PI / 4);
+    ctx.beginPath(); ctx.moveTo(0, 26); ctx.quadraticCurveTo(-22, 0, 0, -28); ctx.quadraticCurveTo(22, 0, 0, 26);
+    ctx.lineWidth = 3.5; ctx.strokeStyle = "#111"; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 34); ctx.lineTo(0, -18); ctx.stroke();
+    ctx.lineWidth = 2;
+    [-8, 2, 12].forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(-9, y - 8); ctx.moveTo(0, y); ctx.lineTo(9, y - 8); ctx.stroke(); });
+    ctx.restore();
+  }
+  function houseIcon(cx, cy) {
+    ctx.fillStyle = "#111";
+    ctx.beginPath(); ctx.moveTo(cx - 32, cy - 2); ctx.lineTo(cx, cy - 30); ctx.lineTo(cx + 32, cy - 2); ctx.lineTo(cx + 25, cy + 4);
+    ctx.lineTo(cx, cy - 18); ctx.lineTo(cx - 25, cy + 4); ctx.closePath(); ctx.fill();
+    ctx.fillRect(cx + 14, cy - 26, 8, 14);
+    ctx.beginPath(); ctx.moveTo(cx - 22, cy + 2); ctx.lineTo(cx, cy - 16); ctx.lineTo(cx + 22, cy + 2); ctx.lineTo(cx + 22, cy + 28);
+    ctx.lineTo(cx + 6, cy + 28); ctx.lineTo(cx + 6, cy + 10); ctx.lineTo(cx - 6, cy + 10); ctx.lineTo(cx - 6, cy + 28); ctx.lineTo(cx - 22, cy + 28); ctx.closePath(); ctx.fill();
+  }
+  function diya(cx, cy, s) {
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(s, s);
+    // glow
+    const glow = ctx.createRadialGradient(0, -34, 2, 0, -34, 46);
+    glow.addColorStop(0, "rgba(255,200,80,0.55)"); glow.addColorStop(1, "rgba(255,160,40,0)");
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, -34, 46, 0, Math.PI * 2); ctx.fill();
+    // flame
+    const fg = ctx.createLinearGradient(0, -62, 0, -10);
+    fg.addColorStop(0, "#ffd54a"); fg.addColorStop(0.6, "#ff9a1f"); fg.addColorStop(1, "#fff4c2");
+    ctx.beginPath(); ctx.moveTo(0, -64); ctx.bezierCurveTo(10, -44, 12, -26, 0, -12); ctx.bezierCurveTo(-12, -26, -10, -44, 0, -64);
+    ctx.fillStyle = fg; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -22, 3.5, 9, 0, 0, Math.PI * 2); ctx.fillStyle = "#fffbe8"; ctx.fill();
+    // bowl
+    const bg = ctx.createLinearGradient(0, -12, 0, 26);
+    bg.addColorStop(0, "#f6a23a"); bg.addColorStop(1, "#a8461a");
+    ctx.beginPath(); ctx.moveTo(-56, -10); ctx.quadraticCurveTo(-44, 28, 0, 28); ctx.quadraticCurveTo(44, 28, 56, -10);
+    ctx.quadraticCurveTo(0, 4, -56, -10); ctx.closePath(); ctx.fillStyle = bg; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -8, 54, 8, 0, 0, Math.PI * 2); ctx.fillStyle = "#7a2f10"; ctx.fill();
+    ctx.strokeStyle = "rgba(255,220,150,0.8)"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-36, 10); ctx.quadraticCurveTo(0, 20, 36, 10); ctx.stroke();
+    ctx.restore();
+  }
+
+  function font(weight, size, family = FONT, italic = false) { return (italic ? "italic " : "") + weight + " " + size + "px " + family; }
+  function fitFont(text, weight, start, min, maxW, family) {
+    let s = start;
+    ctx.font = font(weight, s, family);
+    while (s > min && ctx.measureText(text).width > maxW) { s -= 2; ctx.font = font(weight, s, family); }
+    return s;
+  }
+  function spaced(text, cx, y, spacing) {
+    const chars = [...text];
+    const widths = chars.map(c => ctx.measureText(c).width);
+    const total = widths.reduce((a, b) => a + b, 0) + spacing * (chars.length - 1);
+    let x = cx - total / 2;
+    ctx.textAlign = "left";
+    chars.forEach((c, i) => { ctx.fillText(c, x, y); x += widths[i] + spacing; });
+    return total;
+  }
+  function wrapLines(text, maxW, maxLines) {
+    const words = text.split(/\s+/).filter(Boolean); const lines = []; let cur = "";
+    for (const w of words) {
+      const t = cur ? cur + " " + w : w;
+      if (ctx.measureText(t).width <= maxW || !cur) cur = t; else { lines.push(cur); cur = w; }
+    }
+    if (cur) lines.push(cur);
+    return lines.length <= maxLines ? lines : null;
+  }
+  // rich text: *bold gold*, _script gold_
+  function parseRich(line) {
+    const segs = []; const re = /(\*[^*]+\*|_[^_]+_)/g; let last = 0, m;
+    while ((m = re.exec(line))) {
+      if (m.index > last) segs.push({ t: line.slice(last, m.index), k: "n" });
+      segs.push({ t: m[0].slice(1, -1), k: m[0][0] === "*" ? "b" : "s" });
+      last = m.index + m[0].length;
+    }
+    if (last < line.length) segs.push({ t: line.slice(last), k: "n" });
+    return segs;
+  }
+  function richLine(line, cx, y, size, opts = {}) {
+    const segs = parseRich(line);
+    const fontFor = (k) => k === "b" ? font(800, size, FONT, opts.italic)
+      : k === "s" ? font(700, size * 1.45, SCRIPT) : font(opts.weight || 500, size, FONT, opts.italic);
+    const ws = segs.map(s => { ctx.font = fontFor(s.k); return ctx.measureText(s.t).width; });
+    const total = ws.reduce((a, b) => a + b, 0);
+    let x = cx - total / 2;
+    ctx.textAlign = "left";
+    segs.forEach((s, i) => {
+      ctx.font = fontFor(s.k);
+      ctx.fillStyle = s.k === "n" ? "#ffffff" : (s.k === "s" ? goldGrad(x, y - size, ws[i], size * 1.4) : "#f7c52b");
+      ctx.fillText(s.t, x, y); x += ws[i];
+    });
+    return total;
+  }
+  function goldGrad(x, y, w, h) {
+    const g = ctx.createLinearGradient(x, y, x, y + h);
+    g.addColorStop(0, "#ffe27a"); g.addColorStop(0.55, "#f5b81c"); g.addColorStop(1, "#d98a0b");
+    return g;
+  }
+  function richWidth(line, size, opts = {}) {
+    return parseRich(line).reduce((a, s) => {
+      ctx.font = s.k === "b" ? font(800, size, FONT, opts.italic) : s.k === "s" ? font(700, size * 1.45, SCRIPT) : font(opts.weight || 500, size, FONT, opts.italic);
+      return a + ctx.measureText(s.t).width;
+    }, 0);
+  }
+  function fmtPrice(p) {
+    p = String(p || "").trim();
+    if (!p) return "";
+    return /^[₹Rr]/.test(p) ? p.replace(/^(Rs\.?|rs\.?)\s*/, "₹") : "₹" + p;
+  }
+
+  /* ---------- poster ---------- */
+  function draw(d) {
+    const items = d.items.length ? d.items : [{ name: "Your dish", price: "0" }];
+    const ITEM_H = 165, GAP = 22, X = 40, CW = W - 80;
+    const noticeLines = d.notice.split("\n").map(s => s.trim()).filter(Boolean);
+    const showNotice = d.showNotice && noticeLines.length;
+    const noticeH = showNotice ? 60 + noticeLines.length * 62 : 0;
+    const showCta = d.showCta && (d.ctaTop.trim() || d.ctaBig.trim());
+    let H = 430 + items.length * (ITEM_H + GAP) + (130 + GAP) + (130 + GAP) + (110 + GAP)
+      + (showNotice ? noticeH + GAP : 0) + (showCta ? 125 + GAP : 0) + 30;
+
+    cv.width = W * SCALE; cv.height = H * SCALE;
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+    ctx.textBaseline = "alphabetic";
+
+    // background
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, "#f7f7fa"); bg.addColorStop(0.5, "#ececf1"); bg.addColorStop(1, "#f4f4f8");
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      const y0 = H * (0.12 + i * 0.2);
+      ctx.moveTo(-50, y0); ctx.bezierCurveTo(W * 0.3, y0 - 160, W * 0.6, y0 + 200, W + 50, y0 - 40);
+      ctx.lineTo(W + 50, y0 + 60); ctx.bezierCurveTo(W * 0.6, y0 + 280, W * 0.3, y0 - 60, -50, y0 + 90); ctx.closePath();
+      ctx.fillStyle = i % 2 ? "rgba(255,255,255,0.45)" : "rgba(214,214,226,0.25)"; ctx.fill();
+    }
+    ctx.restore();
+
+    // header
+    const cx = W / 2;
+    chefHat(cx, 62, 1.2);
+    ctx.fillStyle = "#16161c";
+    ctx.textAlign = "center";
+    const small = d.brandSmall.trim();
+    if (small) {
+      ctx.font = font(800, 60); ctx.fillText(small, cx, 148);
+      const tw = ctx.measureText(small).width;
+      hLine(240, cx - tw / 2 - 30, 106); hLine(cx + tw / 2 + 30, W - 240, 106);
+    }
+    // brand words
+    const c1 = d.brandColor.trim(), c2 = d.brandDark.trim();
+    const both = (c1 + " " + c2).trim();
+    const bs = fitFont(both || " ", 900, 150, 60, 800);
+    ctx.font = font(900, bs);
+    const w1 = c1 ? ctx.measureText(c1 + (c2 ? " " : "")).width : 0;
+    const wTot = ctx.measureText(both).width;
+    let bx = cx - wTot / 2;
+    const by = 278;
+    ctx.textAlign = "left";
+    if (c1) {
+      const g = ctx.createLinearGradient(bx, 0, bx + ctx.measureText(c1).width, 0);
+      g.addColorStop(0, "#1d4ed8"); g.addColorStop(0.35, "#6d28d9"); g.addColorStop(0.7, "#e11d48"); g.addColorStop(1, "#f97316");
+      ctx.save(); ctx.shadowColor = "rgba(30,20,80,0.25)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5;
+      ctx.fillStyle = g; ctx.fillText(c1, bx, by); ctx.restore();
+    }
+    if (c2) {
+      ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.25)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 5;
+      ctx.fillStyle = "#121216"; ctx.fillText(c2, bx + w1, by); ctx.restore();
+    }
+    sprig(Math.max(34, bx - 34), 255, 1.05, false, -0.35);
+    sprig(Math.min(W - 34, bx + wTot + 34), 255, 1.05, true, -0.35);
+
+    // tagline
+    if (d.tagline.trim()) {
+      ctx.fillStyle = "#16161c"; ctx.font = font(600, 28);
+      const tw = spaced(d.tagline.trim().toUpperCase(), cx, 336, 9);
+      heart(cx - tw / 2 - 40, 330, 26, "#16161c"); heart(cx + tw / 2 + 40, 330, 26, "#16161c");
+      hLine(80, cx - tw / 2 - 66, 324); hLine(cx + tw / 2 + 66, W - 80, 324);
+    }
+    forkSpoon(cx, 380, 0.95);
+    hLine(260, cx - 70, 372); hLine(cx + 70, W - 260, 372);
+
+    // items
+    let y = 430;
+    items.forEach(it => {
+      glassCard(X, y, CW, ITEM_H);
+      const mid = y + ITEM_H / 2;
+      sprig(X + 70, mid + 52, 0.8, false, 0.15);
+      heart(X + 128, mid - 42, 26);
+      // name
+      const name = (it.name || "").toUpperCase();
+      const maxW = 345;
+      let size = 64, lines = null;
+      while (size >= 30) {
+        ctx.font = font(800, size);
+        lines = wrapLines(name, maxW, 2);
+        if (lines && lines.every(l => ctx.measureText(l).width <= maxW)) break;
+        size -= 2;
+      }
+      if (!lines) lines = [name];
+      ctx.fillStyle = "#121216"; ctx.textAlign = "left";
+      const lh = size * 0.92;
+      const startY = mid - (lines.length - 1) * lh / 2 + size * 0.35;
+      lines.forEach((l, i) => ctx.fillText(l, X + 172, startY + i * lh));
+      vDivider(X + 530, y + 30, y + ITEM_H - 30);
+      heart(X + 588, mid + 4, 32);
+      // price pill
+      const px = X + 650, pw = CW - 650 - 24, ph = 112, py = mid - ph / 2;
+      ctx.save(); ctx.shadowColor = "rgba(190,40,90,0.35)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
+      rr(px, py, pw, ph, ph / 2);
+      const pg = ctx.createLinearGradient(px, 0, px + pw, 0);
+      pg.addColorStop(0, "#7b2ff2"); pg.addColorStop(0.5, "#e8175d"); pg.addColorStop(1, "#ff7a1a");
+      ctx.fillStyle = pg; ctx.fill(); ctx.restore();
+      rr(px + 4, py + 4, pw - 8, ph * 0.45, ph / 2); ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fill();
+      const price = fmtPrice(it.price);
+      const ps = fitFont(price, 800, 76, 30, pw - 40);
+      ctx.font = font(800, ps); ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+      ctx.fillText(price, px + pw / 2, mid + ps * 0.36);
+      y += ITEM_H + GAP;
+    });
+
+    // info card
+    glassCard(X, y, CW, 130, 30);
+    const colW = CW / 3, im = y + 65;
+    const info = [["ORDER BEFORE", d.orderBefore], ["DELIVERY BY", d.deliveryBy], ["DELIVERY AT", d.deliveryAt]];
+    clockIcon(X + 72, im, 32);
+    scooterIcon(X + colW + 70, im + 2);
+    pinIcon(X + colW * 2 + 70, im - 4, 1.05);
+    info.forEach(([lab, val], i) => {
+      const tx = X + colW * i + (i === 0 ? 128 : 132);
+      const avail = colW * (i + 1) + X - tx - 14;
+      ctx.textAlign = "left"; ctx.fillStyle = "#1e1e24";
+      ctx.font = font(500, 20); ctx.fillText(lab, tx, im - 14);
+      const vs = fitFont((val || "").toUpperCase(), 700, 40, 20, avail);
+      ctx.font = font(700, vs); ctx.fillStyle = "#121216"; ctx.fillText((val || "").toUpperCase(), tx, im + 30);
+      if (i < 2) vDivider(X + colW * (i + 1) - 4, y + 25, y + 105);
+    });
+    y += 130 + GAP;
+
+    // whatsapp card
+    glassCard(X, y, CW, 130, 34);
+    const wm = y + 65;
+    whatsappIcon(X + 232, wm - 2, 46);
+    vDivider(X + 310, y + 22, y + 108);
+    ctx.textAlign = "left"; ctx.fillStyle = "#1e1e24"; ctx.font = font(600, 25);
+    ctx.fillText("FOR ORDERS WHATSAPP ON", X + 340, wm - 18);
+    const num = d.whatsapp.trim();
+    const ns = fitFont(num, 800, 64, 28, CW - 360);
+    ctx.font = font(800, ns); ctx.fillStyle = "#121216"; ctx.fillText(num, X + 338, wm + 44);
+    y += 130 + GAP;
+
+    // features
+    glassCard(X, y, CW, 110, 30);
+    const fm = y + 55;
+    const feats = [["Fresh and", "homemade."], ["Prepared", "only on order."], ["We cook a little extra to", "share the goodness of our home."]];
+    const fx = [X + 20, X + 265, X + 505];
+    chefHat(fx[0] + 46, fm - 2, 0.82);
+    leafOutline(fx[1] + 46, fm);
+    houseIcon(fx[2] + 46, fm);
+    feats.forEach((f, i) => {
+      ctx.textAlign = "left"; ctx.fillStyle = "#1e1e24"; ctx.font = font(500, 18);
+      ctx.fillText(f[0], fx[i] + 94, fm - 4); ctx.fillText(f[1], fx[i] + 94, fm + 22);
+    });
+    vDivider(fx[1] - 12, y + 22, y + 88); vDivider(fx[2] - 12, y + 22, y + 88);
+    y += 110 + GAP;
+
+    // notice
+    if (showNotice) {
+      const nx = X + 6, nw = CW - 12;
+      ctx.save(); ctx.shadowColor = "rgba(245,170,40,0.55)"; ctx.shadowBlur = 24;
+      rr(nx, y, nw, noticeH, 46); ctx.fillStyle = "#0e0d10"; ctx.fill(); ctx.restore();
+      rr(nx, y, nw, noticeH, 46);
+      const ng = ctx.createLinearGradient(nx, 0, nx + nw, 0);
+      ng.addColorStop(0, "#f0a32a"); ng.addColorStop(0.5, "#fff1b8"); ng.addColorStop(1, "#f0a32a");
+      ctx.strokeStyle = ng; ctx.lineWidth = 3; ctx.stroke();
+      const nm = y + noticeH / 2;
+      diya(nx + 92, nm + 22, 0.95); diya(nx + nw - 92, nm + 22, 0.95);
+      const maxTW = nw - 330;
+      let ns2 = 44;
+      while (ns2 > 22 && noticeLines.some(l => richWidth(l, ns2) > maxTW)) ns2 -= 2;
+      const lh = ns2 * 1.35;
+      const sy = nm - (noticeLines.length - 1) * lh / 2 + ns2 * 0.35;
+      noticeLines.forEach((l, i) => richLine(l, cx, sy + i * lh, ns2));
+      y += noticeH + GAP;
+    }
+
+    // CTA
+    if (showCta) {
+      const ctaW = 730, ctaX = cx - ctaW / 2, ctaH = 112;
+      ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
+      rr(ctaX, y, ctaW, ctaH, ctaH / 2); ctx.fillStyle = "#0e0d10"; ctx.fill(); ctx.restore();
+      rr(ctaX, y, ctaW, ctaH, ctaH / 2);
+      const rg = ctx.createLinearGradient(ctaX, 0, ctaX + ctaW, 0);
+      ["#f7c52b", "#ff5f6d", "#8a5cf6", "#3ec7ff", "#f7c52b"].forEach((c, i, a) => rg.addColorStop(i / (a.length - 1), c));
+      ctx.strokeStyle = rg; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = "#fff"; ctx.font = font(500, 22);
+      if (d.ctaTop.trim()) spaced(d.ctaTop.trim().toUpperCase(), cx, y + 42, 3.5);
+      if (d.ctaBig.trim()) {
+        const big = d.ctaBig.trim().toUpperCase();
+        let bs2 = 44;
+        while (bs2 > 22 && richWidth(big, bs2, { italic: true, weight: 800 }) > ctaW - 170) bs2 -= 2;
+        const bw = richLine(big, cx, y + 90, bs2, { italic: true, weight: 800 });
+        ctx.fillStyle = "#f7c52b";
+        ctx.fillRect(cx - bw / 2 - 52, y + 76, 34, 3); ctx.fillRect(cx + bw / 2 + 18, y + 76, 34, 3);
+      }
+    }
+    $("out").src = cv.toDataURL("image/png");
+  }
+
+  async function generate() {
+    const d = readForm();
+    saveForm(d);
+    try {
+      await Promise.all([
+        document.fonts.load('800 60px "Poppins"'), document.fonts.load('900 60px "Poppins"'),
+        document.fonts.load('500 20px "Poppins"'), document.fonts.load('600 20px "Poppins"'),
+        document.fonts.load('700 20px "Poppins"'), document.fonts.load('italic 800 40px "Poppins"'),
+        document.fonts.load('700 40px "Dancing Script"')
+      ]);
+    } catch (e) {}
+    draw(d);
+    status.textContent = "Poster is up to date.";
+    status.classList.remove("dirty");
+  }
+
+  $("f").addEventListener("submit", (e) => { e.preventDefault(); generate(); });
+
+  $("copyBtn").addEventListener("click", () => {
+    const msg = $("copyMsg");
+    try {
+      const blob = new Promise(res => cv.toBlob(res, "image/png"));
+      navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
+        .then(() => { msg.textContent = "Image copied. Paste it into WhatsApp or anywhere else."; })
+        .catch(() => { msg.textContent = "Copying isn't allowed here. Right-click or long-press the image and choose Save or Copy."; });
+    } catch (e) {
+      msg.textContent = "Copying isn't allowed here. Right-click or long-press the image and choose Save or Copy.";
+    }
+  });
+
+  loadForm();
+  generate();
+})();
+</script>
